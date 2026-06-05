@@ -136,11 +136,6 @@ export const PointsDashboard = () => {
     }
     toast.success("+" + r.gained + " Starlight Points claimed!", { description: "🔥 " + r.newStreak + "-day streak" });
   };
-  recordActivity({
-  type: "daily",
-  description: `Daily check-in — ${r.newStreak}-day streak`,
-  points: r.gained,
-});
 
   const userBoard = globalBoard.map((entry, i) => ({
     rank: i + 1,
