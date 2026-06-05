@@ -10,22 +10,26 @@ async function handler(req, res) {
     return res.status(400).json({ error: "Missing required fields" });
   }
 
+  // Apply user's slippage tolerance to protect against price movement
+  const slippageBps = req.body.slippage.bps;
+
   try {
     const { AppKit } = await import("@circle-fin/app-kit");
     const kit = new AppKit();
-    
+
     const result = await kit.swap({
       from: { chain: "Arc_Testnet" },
       tokenIn,
       tokenOut,
       amountIn: String(amountIn),
+      slippageBps,
       config: {
         kitKey: process.env.VITE_CIRCLE_KIT_KEY,
       },
     });
 
-    return res.status(200).json({ 
-      success: true, 
+    return res.status(200).json({
+      success: true,
       txHash: result?.txHash ?? result?.hash ?? "submitted"
     });
 
