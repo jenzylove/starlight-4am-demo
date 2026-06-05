@@ -1,19 +1,49 @@
-import { getTracer, flushTelemetry } from '../lib/otel.js';
-import { SpanStatusCode } from '@opentelemetry/api';
+const DT_ENVIRONMENT = process.env.DT_ENVIRONMENT;
+const DT_API_TOKEN = process.env.DT_API_TOKEN;
+
+async function reportToDynatrace(error, req) {
+  if (!DT_ENVIRONMENT || !DT_API_TOKEN) {
+    console.warn('[Dynatrace] env vars missing — skipping report');
+    return;
+  }
+
+  try {
+    const payload = [{
+      timestamp: new Date().toISOString(),
+      content: `${error.name}: ${error.message}`,
+      severity: 'ERROR',
+      'service.name': 'starlight-api',
+      'http.method': req.method,
+      'http.route': '/api/swap',
+      'http.status_code': 500,
+      'exception.type': error.name,
+      'exception.message': error.message,
+      'exception.stacktrace': error.stack,
+      'log.source': 'api/swap.js',
+    }];
+
+    const response = await fetch(`${DT_ENVIRONMENT}/api/v2/logs/ingest`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Api-Token ${DT_API_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const body = await response.text();
+    console.log(`[Dynatrace] Logs ingest → ${response.status} ${body || '(empty)'}`);
+  } catch (err) {
+    console.error('[Dynatrace] Report failed:', err.message);
+  }
+}
 
 async function handler(req, res) {
-  const tracer = getTracer();
-  const span = tracer.startSpan('POST /api/swap');
-  span.setAttribute('http.method', req.method);
-  span.setAttribute('http.route', '/api/swap');
-
   try {
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-    if (req.method === "OPTIONS") {
-      return res.status(200).end();
-    }
+    if (req.method === "OPTIONS") return res.status(200).end();
 
     const { tokenIn, tokenOut, amountIn } = req.body;
 
@@ -39,7 +69,6 @@ async function handler(req, res) {
         },
       });
 
-      span.setStatus({ code: SpanStatusCode.OK });
       return res.status(200).json({
         success: true,
         txHash: result?.txHash ?? result?.hash ?? "submitted"
@@ -47,19 +76,13 @@ async function handler(req, res) {
 
     } catch (error) {
       console.error("Swap error:", error);
-      span.recordException(error);
-      span.setStatus({ code: SpanStatusCode.ERROR, message: error.message });
+      await reportToDynatrace(error, req);
       return res.status(500).json({ error: error.message });
     }
   } catch (error) {
-    // Catches the planted slippage TypeError (fires outside inner try/catch)
     console.error("Unhandled error in /api/swap:", error);
-    span.recordException(error);
-    span.setStatus({ code: SpanStatusCode.ERROR, message: error.message });
+    await reportToDynatrace(error, req);
     return res.status(500).json({ error: error.message });
-  } finally {
-    span.end();
-    await flushTelemetry();
   }
 }
 
