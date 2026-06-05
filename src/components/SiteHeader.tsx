@@ -36,10 +36,10 @@ export const SiteHeader = () => {
           </div>
         </a>
 
-        {/* Desktop nav — exactly as before */}
+        {/* Desktop nav */}
         <nav className="hidden md:flex items-center gap-1">
           {links.map((l) => (
-            
+        <a
               key={l.href}
               href={l.href}
               className="px-3.5 py-2 text-sm font-medium text-muted-foreground hover:text-foreground rounded-full hover:bg-secondary transition-colors"
@@ -76,7 +76,7 @@ export const SiteHeader = () => {
         <div className="md:hidden border-t border-border/60 bg-background/95 backdrop-blur-xl">
           <nav className="container py-3 flex flex-col gap-1">
             {links.map((l) => (
-              
+              <a
                 key={l.href}
                 href={l.href}
                 onClick={() => setMobileOpen(false)}
