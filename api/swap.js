@@ -22,7 +22,8 @@ async function reportToDynatrace(error, req) {
       'log.source': 'api/swap.js',
     }];
 
-    const response = await fetch(`${DT_ENVIRONMENT}/api/v2/logs/ingest`, {
+    const liveUrl = DT_ENVIRONMENT.replace('.apps.', '.live.');
+    const response = await fetch(`${liveUrl}/api/v2/logs/ingest`, {
       method: 'POST',
       headers: {
         'Authorization': `Api-Token ${DT_API_TOKEN}`,
