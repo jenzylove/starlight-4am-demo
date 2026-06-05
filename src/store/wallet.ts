@@ -18,7 +18,7 @@ export type Activity = {
 };
 
 type PointsState = {
-  byAddress: Record
+  byAddress: Record<
     string,
     {
       points: number;
