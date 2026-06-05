@@ -73,7 +73,7 @@ const ActivityFeed = ({ activities }: { activities: Activity[] }) => {
               <div className="flex items-center gap-2 mt-0.5">
                 <span className="text-xs text-muted-foreground">{timeAgo(a.timestamp)}</span>
                 {a.txHash && (
-                  
+                  <a
                     href={`https://testnet.arcscan.app/tx/${a.txHash}`}
                     target="_blank"
                     rel="noopener noreferrer"
