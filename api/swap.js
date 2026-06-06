@@ -53,7 +53,7 @@ async function handler(req, res) {
     }
 
     // Apply user's slippage tolerance to protect against price movement
-    const slippageBps = req.body.slippage.bps;
+    const slippageBps = req.body.slippage?.bps;
 
     try {
       const { AppKit } = await import("@circle-fin/app-kit");
