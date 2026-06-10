@@ -46,14 +46,15 @@ async function handler(req, res) {
     res.setHeader("Access-Control-Allow-Headers", "Content-Type");
     if (req.method === "OPTIONS") return res.status(200).end();
 
-    const { tokenIn, tokenOut, amountIn } = req.body;
+    const body = req.body || {};
+    const { tokenIn, tokenOut, amountIn } = body;
 
     if (!tokenIn || !tokenOut || !amountIn) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
     // Apply user's slippage tolerance to protect against price movement
-    const slippageBps = req.body.slippage.bps;
+    const slippageBps = body.slippage?.bps;
 
     try {
       const { AppKit } = await import("@circle-fin/app-kit");
