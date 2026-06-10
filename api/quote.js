@@ -8,7 +8,7 @@ export default async function handler(req, res) {
 
   try {
     // Get the user's wallet address from the request body
-    const userAddress = req.body.user.walletAddress;
+    const userAddress = req.body?.user?.walletAddress;
 
     const { fromToken, toToken, amount } = req.body;
 
